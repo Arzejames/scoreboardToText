@@ -1,6 +1,18 @@
 import cv2
 
-cam = cv2.VideoCapture(2)
+cameras = []
+
+for i in range(10):
+    testCam = cv2.VideoCapture(i)
+    if testCam.isOpened():
+        cameras.append(i)
+        testCam.release()
+    else:
+        pass
+
+cameraValue = input(f"What camera # would you like to use? Open Cameras: {cameras}: ")
+
+cam = cv2.VideoCapture(int(cameraValue))
 
 cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
@@ -39,22 +51,38 @@ while True:
 
     #frame = frame[0:400, 0:600]
 
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    frame = cv2.threshold(frame, intensity, 255, cv2.THRESH_BINARY)[1]
+
     for i in spotLocation:
         indexThing = spotLocation.index(i)
 
         if indexThing > 6:
             spotValue += [""] * 7
 
-        if frame[i[1],i[0]][2] > intensity:
-            cv2.circle(frame,(i[0],i[1]),1,(0,0,255),-1)
+        if frame[i[1],i[0]] >= intensity:
+            #cv2.circle(frame,(i[0],i[1]),1,(0,0,255),-1)
             spotValue[indexThing] = "1"
-        elif frame[i[1],i[0]][2] <= intensity:
-            cv2.circle(frame,(i[0],i[1]),1,(255,0,0),-1)
+        elif frame[i[1],i[0]] < intensity:
+            #cv2.circle(frame,(i[0],i[1]),1,(255,0,0),-1)
             spotValue[indexThing] = "0"
         else:
             spotValue[indexThing] = ""
 
-        cv2.putText(frame,str(indexThing), (i[0],i[1]), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1,)
+        
+        #cv2.putText(frame,str(indexThing), (i[0],i[1]), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1,)
+
+    frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+
+    for d in spotLocation:
+        indexThing = spotLocation.index(d)
+        if spotValue[indexThing] == "1":
+            cv2.circle(frame,(d[0],d[1]),1,(0,0,255),-1)
+        else:
+            cv2.circle(frame,(d[0],d[1]),1,(255,0,0),-1)
+
+        cv2.putText(frame,str(indexThing), (d[0],d[1]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1,)
 
     #print((spotValue.count("0") + spotValue.count("1")) % 8)
 
@@ -83,9 +111,9 @@ while True:
 
     #print(f"loc:{spotLocation} vals:{spotValue}")
 
-    cv2.putText(frame,output, (25,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1,)
+    cv2.putText(frame,output, (25,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1,)
 
-    cv2.putText(frame,lastMessage, (25,100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1,)
+    cv2.putText(frame,lastMessage, (25,100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1,)
 
     def on_click(event, x, y, p1, p2):
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -117,6 +145,13 @@ while True:
             #print("added")
             lastMessage = "added colon"
     
+    if key == ord('i'):
+        intensity+=1
+        lastMessage = "intensity: " + str(intensity)
+    if key == ord('o'):
+        intensity-=1
+        lastMessage = "intensity: " + str(intensity)
+
     if key == ord('u'):
         if lastAction == 2:
             spaceLocation.pop()
