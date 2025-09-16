@@ -95,6 +95,8 @@ while True:
             start = a*7
             end = start + 7
             joined_value = ''.join(spotValue[start:end])
+            if [joined_value] == ["0000000"]:
+                output += "0"
             if [joined_value] in conversionTable:
                 output += str(conversionTable.index([joined_value]))
         if spaceLocation:
@@ -114,6 +116,8 @@ while True:
     cv2.putText(frame,output, (25,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1,)
 
     cv2.putText(frame,lastMessage, (25,100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1,)
+
+    #print(output)
 
     def on_click(event, x, y, p1, p2):
         if event == cv2.EVENT_LBUTTONDOWN:
