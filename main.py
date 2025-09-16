@@ -1,4 +1,5 @@
 import cv2
+import os
 
 cameras = []
 
@@ -14,8 +15,8 @@ cameraValue = input(f"What camera # would you like to use? Open Cameras: {camera
 
 cam = cv2.VideoCapture(int(cameraValue))
 
-cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
 frame_width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -32,7 +33,7 @@ conversionTable = [
     ["0110011"],
     ["1011011"],
     ["1011111"],
-    ["1110010"],
+    ["1110000"],
     ["1111111"],
     ["1111011"]
 ]
@@ -42,9 +43,13 @@ colonLocation = []
 
 intensity = 150
 
+circleSize = 5
+
 lastAction = 0
 
 lastMessage = ""
+
+filesMade = []
 
 while True:
     ret, frame = cam.read()
@@ -78,11 +83,11 @@ while True:
     for d in spotLocation:
         indexThing = spotLocation.index(d)
         if spotValue[indexThing] == "1":
-            cv2.circle(frame,(d[0],d[1]),1,(0,0,255),-1)
+            cv2.circle(frame,(d[0],d[1]),circleSize,(0,0,255),-1)
         else:
-            cv2.circle(frame,(d[0],d[1]),1,(255,0,0),-1)
+            cv2.circle(frame,(d[0],d[1]),circleSize,(255,0,0),-1)
 
-        cv2.putText(frame,str(indexThing), (d[0],d[1]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1,)
+        #cv2.putText(frame,str(indexThing), (d[0],d[1]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,)
 
     #print((spotValue.count("0") + spotValue.count("1")) % 8)
 
@@ -113,15 +118,23 @@ while True:
 
     #print(f"loc:{spotLocation} vals:{spotValue}")
 
-    cv2.putText(frame,output, (25,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1,)
+    cv2.putText(frame,output.replace(" ", "_"), (25,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,)
 
-    cv2.putText(frame,lastMessage, (25,100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1,)
+    cv2.putText(frame,lastMessage, (25,100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,)
 
     #print(output)
+
+    filesToMake = output.split()
+    for f in range(len(filesToMake)):
+        with open((f"text{f}.txt"), "w") as file_object:
+            file_object.write(filesToMake[f])
+            if (f"text{f}.txt") not in filesMade:
+                filesMade.append((f"text{f}.txt"))
 
     def on_click(event, x, y, p1, p2):
         if event == cv2.EVENT_LBUTTONDOWN:
             spotLocation.append([x,y])
+            lastAction = 0
 
 
     cv2.imshow('Camera', frame)
@@ -165,6 +178,7 @@ while True:
             spotLocation.pop()
             spotValue.pop()
         lastAction = 0
+        spotValue = [""] * 7
 
     if key == ord('q'):
         break
@@ -173,3 +187,6 @@ while True:
 cam.release()
 cv2.destroyAllWindows()
 
+for r in range(10):
+    if os.path.exists((f"text{r}.txt")):
+        os.remove((f"text{r}.txt"))
