@@ -35,7 +35,7 @@ conversionTable = [
     ["1011111"],
     ["1110000"],
     ["1111111"],
-    ["1111011"]
+    ["1110011"]
 ]
 
 spaceLocation = []
@@ -114,6 +114,7 @@ while True:
 
         # print(f"loc:{spotLocation} vals:{spotValue}")
         #print(spotLocation)
+        #print(lastAction)
         #print(output)
 
     #print(f"loc:{spotLocation} vals:{spotValue}")
@@ -133,8 +134,10 @@ while True:
 
     def on_click(event, x, y, p1, p2):
         if event == cv2.EVENT_LBUTTONDOWN:
+            global lastAction
+            lastAction = 0 
             spotLocation.append([x,y])
-            lastAction = 0
+
 
 
     cv2.imshow('Camera', frame)
@@ -176,7 +179,6 @@ while True:
             colonLocation.pop()
         else:
             spotLocation.pop()
-            spotValue.pop()
         lastAction = 0
         spotValue = [""] * 7
 
