@@ -1,105 +1,142 @@
 import cv2
 import os
-from vidstab import VidStab
+from cv2_enumerate_cameras import enumerate_cameras
 
-cameras = []
+#Get connected cameras via enumerate_cameras
+def getUVCcameras():
+    cameraList = []
+    cameras = enumerate_cameras()
+    for cameraInfo in cameras:
+        cameraList.append([cameraInfo.name, cameraInfo.index])
+    return cameraList
 
-for i in range(10):
-    testCam = cv2.VideoCapture(i)
-    if testCam.isOpened():
-        cameras.append(i)
-        testCam.release()
+#Ask and list what camera to connect to
+print("What camera would you like to use?")
+connectedCameras = getUVCcameras()
+cameraAmountConnected = len(connectedCameras)
+for cams in connectedCameras:
+    print(f"{cams[0]}:{cams[1]} - ({connectedCameras.index(cams)})")
+
+#Function to have user select camera
+def selectCamera():
+    cameraToUse = input("Camera to use: ")
+    if cameraToUse.isdigit() and int(cameraToUse) >= 0 and int(cameraToUse) <  cameraAmountConnected:
+        testCam = cv2.VideoCapture(connectedCameras[int(cameraToUse)][1])
+        if testCam.isOpened():
+            print("Test connect to camera successful")
+            testCam.release()
+            return connectedCameras[int(cameraToUse)][1]
+        else:
+            print("ERROR: Cannot connect to camera")
+            selectCamera()
     else:
-        pass
+        print("ERROR: Input was not valid")
+        selectCamera()
 
-cameraValue = input(f"What camera # would you like to use? Open Cameras: {cameras}: ")
+#Start video capture
+videoCapture = cv2.VideoCapture(selectCamera())
 
-cam = cv2.VideoCapture(int(cameraValue))
+#Set Camera resoltion and window size
+videoCapture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+videoCapture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-#stabilizer = VidStab()
+frameWidth = int(videoCapture.get(cv2.CAP_PROP_FRAME_WIDTH))
+frameHeight = int(videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+ret, testFrame = videoCapture.read()
+cv2.imshow('Camera', testFrame)
 
-frame_width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
-frame_height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
-spotLocation = []
-
-spotValue = [""] * 7
+cv2.resizeWindow("Camera", frameWidth, frameHeight)
 
 conversionTable = [
-    ["1111110"],
-    ["0110000"],
-    ["1101101"],
-    ["1111001"],
-    ["0110011"],
-    ["1011011"],
-    ["1011111"],
-    ["1110000"],
-    ["1111111"],
-    ["1110011"]
+    ["1111110"], #0
+    ["0110000"], #1
+    ["1101101"], #2
+    ["1111001"], #3
+    ["0110011"], #4
+    ["1011011"], #5
+    ["1011111"], #6
+    ["1110000"], #7
+    ["1111111"], #8
+    ["1110011"] #9
 ]
 
-intensity = 150
+bwIntensity = 150
+
+numberOfTrackers = 0
 
 circleSize = 5
 
-lastMessage = ""
+trackerGroups = []
+
+trackerGroupsValues = []
 
 filesMade = []
 
-colorOn = True
+colorMode = True
 
+updateMessage = ""
+
+#Loop to run window
 while True:
-    ret, frame = cam.read()
+    ret, originalFrame = videoCapture.read()
+    colorFrame = originalFrame
+    bwFrame = cv2.cvtColor(originalFrame, cv2.COLOR_BGR2GRAY)
+    bwFrame = cv2.threshold(bwFrame, bwIntensity, 255, cv2.THRESH_BINARY)[1]
 
-    #frame = stabilizer.stabilize_frame(input_frame=frame,border_size=100)
+    #Set color mode
+    if colorMode == True:
+        currentFrame = colorFrame
+    elif colorMode == False:
+        currentFrame = cv2.cvtColor(bwFrame, cv2.COLOR_GRAY2RGB)
 
-    colorFrame = frame
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    frame = cv2.threshold(frame, intensity, 255, cv2.THRESH_BINARY)[1]
+    #Set locations for pointers
+    def placeTracker(event, x, y, p1, p2):
+        global numberOfTrackers
+        if event == cv2.EVENT_LBUTTONDOWN:
+            if numberOfTrackers % 7 == 0 or numberOfTrackers == 0:
+                trackerGroups.append([])
+                trackerGroupsValues.append([])
+            trackerGroups[numberOfTrackers//7].append([x,y])
+            trackerGroupsValues[numberOfTrackers//7].append([])
+            numberOfTrackers += 1
+    
+    cv2.setMouseCallback('Camera', placeTracker)
 
-    for i in spotLocation:
-        indexThing = spotLocation.index(i)
-        if indexThing > 6:
-            spotValue += [""] * 7
-        if frame[i[1],i[0]] >= intensity:
-            spotValue[indexThing] = "1"
-        elif frame[i[1],i[0]] < intensity:
-            spotValue[indexThing] = "0"
+    #Set values for trackers and set circle color
+    for groupsAmount in range(len(trackerGroups)):
+        for pointsAmount in range(len(trackerGroups[groupsAmount])):
+            cords = trackerGroups[groupsAmount][pointsAmount]
+            pointerValue = bwFrame[cords[1],cords[0]]
+
+            if pointerValue >= bwIntensity:
+                trackerGroupsValues[groupsAmount][pointsAmount] = "1"
+                cv2.circle(currentFrame,(cords[0],cords[1]),circleSize,(0,0,255),-1)
+            else:
+                trackerGroupsValues[groupsAmount][pointsAmount] = "0"
+                cv2.circle(currentFrame,(cords[0],cords[1]),circleSize,(255,0,0),-1)
+
+    #Convert numbers to output
+    output = ""
+
+    for groupsOfPoints in trackerGroupsValues:
+        joinedBinaryValues = ''.join(groupsOfPoints)
+        if [joinedBinaryValues] == ["0000000"]:
+            output += "0"
+        if [joinedBinaryValues] in conversionTable:
+            output += str(conversionTable.index([joinedBinaryValues]))
+        elif len(groupsOfPoints) < 7:
+            output += '@'
         else:
-            spotValue[indexThing] = ""
+            output += '#'
 
-    if colorOn:
-        frame = colorFrame
-    else:
-        frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+    #Show output
+    cv2.putText(currentFrame,output, (25,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,)
 
-    for d in spotLocation:
-        indexThing = spotLocation.index(d)
-        if spotValue[indexThing] == "1":
-            cv2.circle(frame,(d[0],d[1]),circleSize,(0,0,255),-1)
-        else:
-            cv2.circle(frame,(d[0],d[1]),circleSize,(255,0,0),-1)
+    #Show updated message
+    cv2.putText(currentFrame,updateMessage, (25,100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,)
 
-    totalCount = (spotValue.count("0") + spotValue.count("1"))
-    output = ""    
-
-    if totalCount % 7 == 0 and not totalCount == 0:
-        for a in range(int(totalCount/7)):
-            start = a*7
-            end = start + 7
-            joined_value = ''.join(spotValue[start:end])
-            if [joined_value] == ["0000000"]:
-                output += "0"
-            if [joined_value] in conversionTable:
-                output += str(conversionTable.index([joined_value]))
-
-    cv2.putText(frame,output.replace(" ", "_"), (25,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,)
-
-    cv2.putText(frame,lastMessage, (25,100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,)
-
+    #Save ouput to files
     filesToMake = list(output)
     for f in range(len(filesToMake)):
         with open((f"text{f}.txt"), "w") as file_object:
@@ -107,31 +144,50 @@ while True:
             if (f"text{f}.txt") not in filesMade:
                 filesMade.append((f"text{f}.txt"))
 
-    def on_click(event, x, y, p1, p2):
-        if event == cv2.EVENT_LBUTTONDOWN:
-            spotLocation.append([x,y])
+    # for i in range(len(trackerGroups)):
+    #     print(trackerGroups[i])
+    #     print(trackerGroupsValues[i])
 
-    cv2.imshow('Camera', frame)
-    cv2.setMouseCallback('Camera', on_click)
+    #Show current frame
+    cv2.imshow('Camera', currentFrame)
 
+    #Do things on keypresses
     key = cv2.waitKey(1)
-    
+
+    #Change color mode
     if key == ord('c'):
-        colorOn = not colorOn
-    if key == ord('u'):
-        if len(spotLocation) > 0:
-            spotLocation.pop()
+        colorMode = not colorMode
+
+    #Turn up and down intensity
     if key == ord('i'):
-        intensity+=1
-        lastMessage = "intensity: " + str(intensity)
+        bwIntensity+=1
+        updateMessage = "intensity: " + str(bwIntensity)
+        #colorMode = False
+
     if key == ord('o'):
-        intensity-=1
-        lastMessage = "intensity: " + str(intensity)
+        bwIntensity-=1
+        updateMessage = "intensity: " + str(bwIntensity)
+        #colorMode = False
+
+    #Undo Trackers
+    if key == ord('u'):
+        if numberOfTrackers != 0:
+            trackerGroups[-1].pop()
+            if trackerGroups[-1] == []:
+                del trackerGroups[-1]
+
+            trackerGroupsValues[-1].pop()
+            if trackerGroupsValues[-1] == []:
+                del trackerGroupsValues[-1]
+
+            numberOfTrackers -= 1
+    
+    #Quit on q
     if key == ord('q'):
         break
 
 
-cam.release()
+videoCapture.release()
 cv2.destroyAllWindows()
 
 for r in range(10):
