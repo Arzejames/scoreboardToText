@@ -111,13 +111,13 @@ Now you should have a window open that shows the live camera feed
 
 Now you have gotten the programing running, you can learn how to use the program. First thing to learn is the keys you need to know to use the program.
 
-| Key    | Use                                              |
-| :----- | :----------------------------------------------- |
-| `q`    | Used to quit the program                         |
-| `u`    | Used to undo placed trackers                     |
-| `c`    | Used to change picutre in either color or B/W    |
-| `i`    | Used to decrease B/W intestity                   |
-| `o`    | Used to increase B/W intestity                   |
+|  Key   | Use                                              |
+| :----: | :----------------------------------------------- |
+|  `q`   | Used to quit the program                         |
+|  `u`   | Used to undo placed trackers                     |
+|  `c`   | Used to change picutre in either color or B/W    |
+|  `i`   | Used to decrease B/W intestity                   |
+|  `o`   | Used to increase B/W intestity                   |
 | `wasd` | Used to move all trackers (Used like arrow keys) |
 
 Now you have learned these keys, lets jump into the program.
