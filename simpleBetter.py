@@ -75,6 +75,9 @@ filesMade = []
 
 colorMode = True
 
+output = ""
+lastOutput = ""
+
 updateMessage = ""
 
 #Loop to run window
@@ -117,24 +120,34 @@ while True:
                 cv2.circle(currentFrame,(cords[0],cords[1]),circleSize,(255,0,0),-1)
 
     #Convert numbers to output
+    lastOutput = output
     output = ""
 
     for groupsOfPoints in trackerGroupsValues:
         joinedBinaryValues = ''.join(groupsOfPoints)
-        if [joinedBinaryValues] == ["0000000"]:
-            output += "0"
         if [joinedBinaryValues] in conversionTable:
             output += str(conversionTable.index([joinedBinaryValues]))
-        elif len(groupsOfPoints) < 7:
-            output += '@'
+        # elif joinedBinaryValues == "0000000":
+        #     output += "0"
+        # elif len(groupsOfPoints) < 7:
+        #     output += '@'
         else:
-            output += '#'
+            output += "#"
 
     #Show output
     cv2.putText(currentFrame,output, (25,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,)
 
     #Show updated message
     cv2.putText(currentFrame,updateMessage, (25,100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,)
+
+    if '#' in output and numberOfTrackers % 7 == 0:
+        for replace in range(output.count('#')):
+            hashIndex = output.index('#')
+            if hashIndex < len(lastOutput):
+                replacementChar = lastOutput[hashIndex]
+            else:
+                replacementChar = '0'
+            output = output[:hashIndex] + replacementChar + output[hashIndex + 1:]
 
     #Save ouput to files
     filesToMake = list(output)
@@ -168,6 +181,25 @@ while True:
         bwIntensity-=1
         updateMessage = "intensity: " + str(bwIntensity)
         #colorMode = False
+
+    def offsetTrackers(x,y):
+        for groupsAmount in range(len(trackerGroups)):
+            for pointsAmount in range(len(trackerGroups[groupsAmount])):
+                trackerGroups[groupsAmount][pointsAmount][0] = trackerGroups[groupsAmount][pointsAmount][0] + x
+                trackerGroups[groupsAmount][pointsAmount][1] = trackerGroups[groupsAmount][pointsAmount][1] + y
+
+    #Use WASD to move around trackers
+    if key == ord('w'):
+        offsetTrackers(0,-1)
+
+    if key == ord('s'):
+        offsetTrackers(0,1)
+
+    if key == ord('a'):
+        offsetTrackers(-1,0)
+
+    if key == ord('d'):
+        offsetTrackers(1,0)
 
     #Undo Trackers
     if key == ord('u'):
