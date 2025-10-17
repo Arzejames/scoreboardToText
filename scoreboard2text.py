@@ -36,17 +36,8 @@ def selectCamera():
 #Start video capture
 videoCapture = cv2.VideoCapture(selectCamera())
 
-#Set Camera resoltion and window size
-videoCapture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-videoCapture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-
-frameWidth = int(videoCapture.get(cv2.CAP_PROP_FRAME_WIDTH))
-frameHeight = int(videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
-ret, testFrame = videoCapture.read()
-cv2.imshow('Camera', testFrame)
-
-cv2.resizeWindow("Camera", frameWidth, frameHeight)
+if videoCapture.isOpened():
+    print("Connected to camera successfully")
 
 conversionTable = [
     ["1111110"], #0
@@ -55,11 +46,37 @@ conversionTable = [
     ["1111001"], #3
     ["0110011"], #4
     ["1011011"], #5
-    ["1011111"], #6
+    ["0011111"], #6
     ["1110000"], #7
     ["1111111"], #8
     ["1110011"] #9
 ]
+
+#Get Font Choice
+def getFont():
+    fontToUse = input("Font to use (Check scoreboardFontSelector.png for number) 4 normaly: ")
+    if fontToUse.isdigit() and int(fontToUse) >= 0 and int(fontToUse) < 8:
+        fontToUse = int(fontToUse)
+        if fontToUse in (4,5,6,7):
+            conversionTable[6] = "1011111"
+        if fontToUse in (2,3,6,7):
+            conversionTable[7] = "1110010"
+        if fontToUse in (1,3,5,7):
+            conversionTable[9] = "1111011"
+
+getFont()
+
+#Set Camera resoltion and window size
+videoCapture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+videoCapture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+
+frameWidth = int(videoCapture.get(cv2.CAP_PROP_FRAME_WIDTH))
+frameHeight = int(videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+ret, testFrame = videoCapture.read()
+cv2.imshow('Scoreboard2Text', testFrame)
+
+cv2.resizeWindow("Scoreboard2Text", frameWidth, frameHeight)
 
 bwIntensity = 150
 
@@ -104,7 +121,7 @@ while True:
             trackerGroupsValues[numberOfTrackers//7].append([])
             numberOfTrackers += 1
     
-    cv2.setMouseCallback('Camera', placeTracker)
+    cv2.setMouseCallback('Scoreboard2Text', placeTracker)
 
     #Set values for trackers and set circle color
     for groupsAmount in range(len(trackerGroups)):
@@ -162,7 +179,7 @@ while True:
     #     print(trackerGroupsValues[i])
 
     #Show current frame
-    cv2.imshow('Camera', currentFrame)
+    cv2.imshow('Scoreboard2Text', currentFrame)
 
     #Do things on keypresses
     key = cv2.waitKey(1)
@@ -172,12 +189,12 @@ while True:
         colorMode = not colorMode
 
     #Turn up and down intensity
-    if key == ord('i'):
+    if key == ord('o'):
         bwIntensity+=1
         updateMessage = "intensity: " + str(bwIntensity)
         #colorMode = False
 
-    if key == ord('o'):
+    if key == ord('i'):
         bwIntensity-=1
         updateMessage = "intensity: " + str(bwIntensity)
         #colorMode = False
