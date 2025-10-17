@@ -75,7 +75,7 @@ Now we have gotten python installed and the packages updated, we can now finally
 python3 scoreboard2text.py
 ```
 
-Now it will list all your currently connected cameras, if your camera does not pop up here, you can use either the `Ctrl+C` shortcut or the `Ctrl+D` shortcut to close the program.
+Now it will list all your currently connected cameras, if your camera does not pop up here, you can use either the `Ctrl+C` shortcut or the `Ctrl+D` shortcut to close the program. After that, relaunch the program.
 
 To select a camera from this list, type the number in the parentheis and then hit the enter key. For example:
 
@@ -93,7 +93,7 @@ If I wanted to use the "OBS Virtual Camera", I would type the number 1 and then 
 Camera to use:1
 ```
 
-> ### Note: If you get an error such as `ERROR: Cannot connect to camera`, there might be an issue with your camera.
+> ### Note: If you get an error such as `ERROR: Cannot connect to camera`, there might be an issue with your camera. Try restarting the program or your camera to try to fix this issue.
 
 Now we get the question about the font your scoreboard uses. Some scoreboard have different ways of displaying the numbers 6, 7, and 9, so we need to enter what font our scoreboard uses. Most scoreboards use the 4th font, but you can double check by checking the image below.
 
