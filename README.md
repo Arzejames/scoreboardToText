@@ -121,3 +121,52 @@ Now you have gotten the programing running, you can learn how to use the program
 | `wasd` | Used to move all trackers (Used like arrow keys) |
 
 Now you have learned these keys, lets jump into the program.
+
+## Getting camera set up
+
+To get the camera positioned properly, point it at the scoreboard and zoom in until the scoreboard takes up almost the entire frame, like the simulated one below.
+
+![Scoreboard Image](imgs/colorImage.png)
+
+After that, press the `c` key to switch the view to B/W Colors like in the screenshot below.
+
+![Scoreboard Image](imgs/bwScreenshot.png)
+
+In this mode, you can see the camera view in the B/W mode, which is used by the program to see if a number segment in one or off.
+
+In most cases, the default intensity will not differentiate the number segments when they are on or off properly, so you will need to increase or decrease the intensity with the `i` and `o` keys so the program will work properly.  
+
+Look at the images below to know how to set your intensity properly.
+
+|Too Low|Good|Too High|
+| :----: | :--: | :-: |
+|  ![Too Low Intensity](imgs/tooLittle.png)   | ![Good Intensity](imgs/good.png) | ![Too High Intensity](imgs/tooMuch.png) |
+
+## Selecting the number segments
+
+Now its time to select the segments so we can digitalize the scoreboard.
+
+To select the numbers, go to the number you want to digitalize and click on each segment of the number in the order below from A to G. Make sure that when you are placing, you do not place the points on the edges of the numbers.
+
+<img src="imgs/sevensegment.png" width="30%">
+
+>### Note: You can press the `c` to change the video color back to color if you need to place points on segments that are off.
+
+>### Note: If you make a mistake when you are entering the points, you can press the `u` key to undo that placement.
+
+If you did this correctly, you should see the number you entered at the top-left corner of the screen like in the image below.
+
+!["Demo of selection"](imgs/placement.png)
+
+# Step 5. Adding to OBS
+
+Now we have the score being digitalized, we need to add it to OBS.
+
+To do this, add a new text element in OBS and then go into the properties of the element. In here, you need to click on the button that says "read from file". This will open a file selector window.
+
+This program seperates each number into its own text file, so you will need to select each file in this programs directory in that file selectory window.
+
+Once you finish this, you should have the text in OBS refreshing.
+
+>### Q: What happens if my camera gets bumped and the circles get unaligned?
+>### A: If your circles get unaligned, you might need to redo the selection process, but you might be able to realign them using the `wasd` keys as arrow keys to try to realign them.
